@@ -1,5 +1,6 @@
 package com.example.myfirstapp;
 
+import com.example.myfirstapp.dto.Joke;
 import com.example.myfirstapp.telegram.MyAmazingBot;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
@@ -14,9 +15,9 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @SpringBootApplication
 public class MyFirstAppApplication {
 
-	private static final String MESSAGE = "Время дейли пришло!!!";
+//	private static final String MESSAGE = "Время дейли пришло!!!";
 	private static final String CHAT_ID = "126927462";
-	private static final String CRON_TASK = "0 0 11 ? * MON-FRI *";
+	private static final String CRON_TASK = "*/10 48 20 ? * SAT-SUN *";
 
 
 	public static void main(String[] args) throws SchedulerException {
@@ -24,6 +25,15 @@ public class MyFirstAppApplication {
 
 		setUpTelegramBot();
 		setUpScheduler();
+	}
+
+	public static String getRandomJoke() {
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<Joke> response = restTemplate.getForEntity("https://api.chucknorris.io/jokes/random", Joke.class);
+
+		Joke joke = response.getBody();
+		assert joke != null;
+		return joke.getValue();
 	}
 
 	private static MyAmazingBot bot = new MyAmazingBot();
@@ -40,7 +50,7 @@ public class MyFirstAppApplication {
 		@Override
 		public void execute(JobExecutionContext context) throws JobExecutionException {
 			try {
-				bot.sendMessage(CHAT_ID, MESSAGE);
+				bot.sendMessage(CHAT_ID, getRandomJoke());
 			} catch (TelegramApiException e) {
 				throw new RuntimeException(e);
 			}
